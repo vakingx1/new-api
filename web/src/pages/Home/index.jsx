@@ -56,12 +56,9 @@ const Home = () => {
   // 代码示例数据
   const codeSamples = useCallback(
     () => ({
-      python: `import openai
+      python: `import BestApi
 
-client = openai.Client(
-    api_key="your-key",
-    base_url="${serverAddress}/v1"
-)
+client = BestApi.Client(api_key="your-key")
 
 response = client.chat.completions.create(
     model="gpt-6",
@@ -69,21 +66,26 @@ response = client.chat.completions.create(
         {"role": "user", "content": "你好，请介绍一下自己"}
     ]
 )
+
 print(response.choices[0].message.content)`,
       curl: `curl ${serverAddress}/v1/chat/completions \\
   -H "Authorization: Bearer your-key" \\
   -H "Content-Type: application/json" \\
-  -d '{"model":"gpt-6","messages":[{"role":"user","content":"hi"}]}'`,
-      javascript: `import OpenAI from "openai";
+  -d '{
+    "model": "claude-4-sonnet",
+    "messages": [
+      {"role": "user", "content": "用 Python 写一个快速排序"}
+    ]
+  }'`,
+      javascript: `import ModelHub from "modelhub";
 
-const client = new OpenAI({
-  apiKey: "your-key",
-  baseURL: "${serverAddress}/v1",
-});
+const client = new ModelHub({ apiKey: "your-key" });
 
 const response = await client.chat.completions.create({
-  model: "gpt-6",
-  messages: [{ role: "user", content: "你好，请介绍一下自己" }],
+  model: "gemini-2.5-pro",
+  messages: [
+    { role: "user", content: "解释一下量子计算的原理" }
+  ],
 });
 
 console.log(response.choices[0].message.content);`,
@@ -252,7 +254,7 @@ console.log(response.choices[0].message.content);`,
       {homePageContentLoaded && homePageContent === '' ? (
         <div className='w-full overflow-x-hidden bg-[#f8f9fa] dark:bg-[#000000] text-[#1a1a2e] dark:text-[#ffffff]'>
           {/* ==================== 区域1: Hero 首屏 ==================== */}
-          <section className='w-full min-h-[90vh] flex flex-col items-center justify-center px-4 py-20 md:py-28'>
+          <section className='w-full min-h-[90vh] flex flex-col items-center justify-center px-4 pt-32 pb-20 md:pt-44 md:pb-28'>
             {/* 顶部标语胶囊 */}
             <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm mb-8 bg-[#f0f0f0] dark:bg-[#111111] text-[#666] dark:text-[#9ca3af] border border-[#e5e5e5] dark:border-[#262626]'>
               <span className='inline-block w-2 h-2 rounded-full bg-[#10b981]' />
