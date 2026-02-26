@@ -772,24 +772,37 @@ html.dark .with-pastel-balls::before {
 }
 
 /* ==================== 模型定价页面布局 ==================== */
+/* 模型广场整体容器 */
 .pricing-layout {
   height: calc(100vh - 60px);
-  overflow: hidden;
   margin-top: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 24px;
 }
 
+/* 侧边栏 + 内容区的 flex 容器 */
+.pricing-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* 侧边栏（内嵌在页面中，不再是 Semi Sider） */
 .pricing-sidebar {
-  width: clamp(280px, 24vw, 520px) !important;
-  min-width: clamp(280px, 24vw, 520px) !important;
-  max-width: clamp(280px, 24vw, 520px) !important;
-  height: calc(100vh - 60px);
-  background-color: var(--semi-color-bg-0);
-  overflow: auto;
+  width: 220px;
+  min-width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
+/* 内容区（卡片/表格） */
 .pricing-content {
-  height: calc(100vh - 60px);
-  background-color: var(--semi-color-bg-0);
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -806,23 +819,215 @@ html.dark .with-pastel-balls::before {
 }
 
 .pricing-search-header {
-  padding: 0.5rem;
-  background-color: var(--semi-color-bg-0);
+  padding: 0.25rem 0;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 5;
 }
 
 .pricing-view-container {
   flex: 1;
-  overflow: auto;
 }
 
 .pricing-view-container-mobile {
   flex: 1;
   overflow: auto;
   min-height: 0;
+}
+
+/* ==================== 模型广场 - 卡片样式 ==================== */
+
+/* 模型卡片 */
+.pricing-model-card {
+  border: 1px solid var(--semi-color-border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--semi-color-bg-1);
+}
+
+.pricing-model-card:hover {
+  border-color: var(--semi-color-primary);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+html.dark .pricing-model-card:hover {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* 卡片标题 */
+.pricing-card-title {
+  color: var(--semi-color-text-0);
+}
+
+/* 模型 ID 行 */
+.pricing-card-model-id {
+  color: var(--semi-color-text-2);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+/* 复制按钮 */
+.pricing-card-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--semi-color-text-3);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.pricing-card-copy-btn:hover {
+  background: var(--semi-color-fill-0);
+  color: var(--semi-color-text-1);
+}
+
+/* 描述 */
+.pricing-card-desc {
+  color: var(--semi-color-text-2);
+}
+
+/* 能力标签（端点类型） */
+.pricing-card-capability-tag {
+  color: var(--semi-color-text-2);
+  background: var(--semi-color-fill-0);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* 价格行容器 */
+.pricing-card-price-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 价格区域块 */
+.pricing-card-price-block {
+  flex: 1;
+  background: var(--semi-color-fill-0);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* 亮色模式下价格块用更深的灰底 */
+html:not(.dark) .pricing-card-price-block {
+  background: #ebedf0;
+}
+
+/* 价格标签 */
+.pricing-card-price-label {
+  color: var(--semi-color-text-3);
+  margin-bottom: 2px;
+  font-size: 11px;
+}
+
+.pricing-card-price-value {
+  color: var(--semi-color-text-0);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 价格图标 — 输入绿色向下，输出红色向上 */
+.pricing-card-price-icon-input {
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.pricing-card-price-icon-output {
+  color: #ef5350;
+  flex-shrink: 0;
+}
+
+/* 倍率区域 */
+.pricing-card-ratio-section {
+  border-top: 1px solid var(--semi-color-border);
+}
+
+.pricing-card-ratio-label {
+  color: var(--semi-color-text-1);
+}
+
+.pricing-card-ratio-values {
+  color: var(--semi-color-text-2);
+}
+
+/* 使用模型按钮 — 暗色模式银白，亮色模式深灰 */
+.pricing-card-use-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 0;
+  border-radius: 8px;
+  border: none;
+  background: #fcf6f6;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pricing-card-use-btn:hover {
+  background: #d8d8d8;
+}
+
+/* 亮色模式按钮 — 比价格块更深，形成层次 */
+html:not(.dark) .pricing-card-use-btn {
+  background: #333;
+  color: #fbf6f6;
+}
+
+html:not(.dark) .pricing-card-use-btn:hover {
+  background: #ea7272;
+}
+
+/* ==================== 模型广场 - 页面标题 ==================== */
+.pricing-page-header {
+  padding: 20px 0 12px;
+  flex-shrink: 0;
+}
+
+.pricing-page-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--semi-color-text-0);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.pricing-page-subtitle {
+  font-size: 14px;
+  color: var(--semi-color-text-2);
+  margin-bottom: 0;
+}
+
+/* 可用模型数量标签 */
+.pricing-model-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: var(--semi-color-fill-0);
+  color: var(--semi-color-text-1);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pricing-model-count svg {
+  color: var(--semi-color-warning);
 }
 
 /* ==================== semi-ui 组件自定义样式 ==================== */
@@ -837,9 +1042,7 @@ html.dark .with-pastel-balls::before {
   background-color: rgba(var(--semi-cyan-5), 0.15);
   color: rgba(var(--semi-cyan-9), 1);
   cursor: help;
-  transition:
-    background-color 120ms ease,
-    border-color 120ms ease,
+  transition: background-color 120ms ease, border-color 120ms ease,
     box-shadow 120ms ease;
 }
 

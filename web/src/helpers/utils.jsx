@@ -54,7 +54,7 @@ export function getSystemName() {
 
 export function getLogo() {
   let logo = localStorage.getItem('logo');
-  if (!logo) return '/logo.png';
+  if (!logo) return '/logo.svg';
   return logo;
 }
 
@@ -103,7 +103,7 @@ let showInfoOptions = { autoClose: toastConstants.INFO_TIMEOUT };
 let showNoticeOptions = { autoClose: false };
 
 const isMobileScreen = window.matchMedia(
-  `(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
+  `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
 ).matches;
 if (isMobileScreen) {
   showErrorOptions.position = 'top-center';
@@ -220,7 +220,7 @@ export function timestamp2string(timestamp) {
 export function timestamp2string1(
   timestamp,
   dataExportDefaultTime = 'hour',
-  showYear = false,
+  showYear = false
 ) {
   let date = new Date(timestamp * 1000);
   let year = date.getFullYear();
@@ -264,7 +264,7 @@ export function timestamp2string1(
 export function isDataCrossYear(timestamps) {
   if (!timestamps || timestamps.length === 0) return false;
   const years = new Set(
-    timestamps.map((ts) => new Date(ts * 1000).getFullYear()),
+    timestamps.map((ts) => new Date(ts * 1000).getFullYear())
   );
   return years.size > 1;
 }
@@ -413,7 +413,7 @@ export const processIncompleteThinkTags = (content, reasoningContent = '') => {
 export const buildMessageContent = (
   textContent,
   imageUrls = [],
-  imageEnabled = false,
+  imageEnabled = false
 ) => {
   if (!textContent && (!imageUrls || imageUrls.length === 0)) {
     return '';
@@ -752,7 +752,9 @@ export const createCardProPagination = ({
 
   const start = (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, total);
-  const totalText = `${t('显示第')} ${start} ${t('条 - 第')} ${end} ${t('条，共')} ${total} ${t('条')}`;
+  const totalText = `${t('显示第')} ${start} ${t('条 - 第')} ${end} ${t(
+    '条，共'
+  )} ${total} ${t('条')}`;
 
   return (
     <>

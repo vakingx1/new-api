@@ -18,7 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Layout, ImagePreview } from '@douyinfe/semi-ui';
+import { ImagePreview } from '@douyinfe/semi-ui';
+import { Zap } from 'lucide-react';
 import PricingSidebar from './PricingSidebar';
 import PricingContent from './content/PricingContent';
 import ModelDetailSideSheet from '../modal/ModelDetailSideSheet';
@@ -27,7 +28,6 @@ import { useIsMobile } from '../../../../hooks/common/useIsMobile';
 
 const PricingPage = () => {
   const pricingData = useModelPricingData();
-  const { Sider, Content } = Layout;
   const isMobile = useIsMobile();
   const [showRatio, setShowRatio] = React.useState(false);
   const [viewMode, setViewMode] = React.useState('card');
@@ -40,22 +40,42 @@ const PricingPage = () => {
   };
 
   return (
-    <div className='bg-white'>
-      <Layout className='pricing-layout'>
+    <div className='pricing-layout'>
+      {/* 页面标题区域 */}
+      <div className='pricing-page-header'>
+        <div className='flex items-center justify-between'>
+          <h1 className='pricing-page-title'>{pricingData.t('模型广场')}</h1>
+          {/* 可用模型数量标签 */}
+          {!pricingData.loading && pricingData.models?.length > 0 && (
+            <span className='pricing-model-count'>
+              <Zap size={14} />
+              {pricingData.models.length} {pricingData.t('个可用模型')}
+            </span>
+          )}
+        </div>
+        <p className='pricing-page-subtitle'>
+          {pricingData.t('浏览和选择适合你业务场景的 AI 模型，按需调用')}
+        </p>
+      </div>
+
+      {/* 主体内容：侧边栏 + 卡片区域 */}
+      <div className='pricing-body'>
+        {/* 侧边栏（桌面端内嵌在页面中） */}
         {!isMobile && (
-          <Sider className='pricing-scroll-hide pricing-sidebar'>
+          <aside className='pricing-sidebar pricing-scroll-hide'>
             <PricingSidebar {...allProps} />
-          </Sider>
+          </aside>
         )}
 
-        <Content className='pricing-scroll-hide pricing-content'>
+        {/* 内容区域 */}
+        <div className='pricing-content pricing-scroll-hide'>
           <PricingContent
             {...allProps}
             isMobile={isMobile}
             sidebarProps={allProps}
           />
-        </Content>
-      </Layout>
+        </div>
+      </div>
 
       <ImagePreview
         src={pricingData.modalImageUrl}

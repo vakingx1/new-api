@@ -258,7 +258,7 @@ const SelectableButtonGroup = ({
 
   return (
     <div
-      className={`mb-8 ${containerWidth <= 400 ? 'sbg-compact' : ''}`}
+      className={`mb-4 ${containerWidth <= 400 ? 'sbg-compact' : ''}`}
       ref={containerRef}
     >
       {title && (

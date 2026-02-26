@@ -18,7 +18,8 @@ For commercial licensing, please contact support@quantumnous.com
 */
 
 import React from 'react';
-import { Button } from '@douyinfe/semi-ui';
+import { Button, Input, Select } from '@douyinfe/semi-ui';
+import { IconSearch } from '@douyinfe/semi-icons';
 import PricingGroups from '../filter/PricingGroups';
 import PricingQuotaTypes from '../filter/PricingQuotaTypes';
 import PricingEndpointTypes from '../filter/PricingEndpointTypes';
@@ -92,13 +93,51 @@ const PricingSidebar = ({
 
   return (
     <div className='p-2'>
-      <div className='flex items-center justify-between mb-6'>
-        <div className='text-lg font-semibold text-gray-800'>{t('筛选')}</div>
+      {/* 搜索框 */}
+      <div className='mb-4'>
+        <Input
+          prefix={<IconSearch />}
+          placeholder={t('搜索模型...')}
+          value={categoryProps.searchValue || ''}
+          onChange={handleChange}
+          showClear
+        />
+      </div>
+
+      {/* 排序 */}
+      <div className='mb-4'>
+        <div
+          className='text-xs font-medium mb-1.5'
+          style={{ color: 'var(--semi-color-text-2)' }}
+        >
+          {t('排序')}
+        </div>
+        <Select
+          value={categoryProps.sortMode || 'recommend'}
+          onChange={categoryProps.setSortMode}
+          style={{ width: '100%' }}
+          optionList={[
+            { value: 'recommend', label: t('推荐排序') },
+            { value: 'name', label: t('名称排序') },
+            { value: 'price_asc', label: t('价格从低到高') },
+            { value: 'price_desc', label: t('价格从高到低') },
+          ]}
+        />
+      </div>
+
+      {/* 筛选标题 + 重置 */}
+      <div className='flex items-center justify-between mb-4'>
+        <div
+          className='text-sm font-semibold'
+          style={{ color: 'var(--semi-color-text-1)' }}
+        >
+          {t('筛选')}
+        </div>
         <Button
-          theme='outline'
+          theme='borderless'
           type='tertiary'
+          size='small'
           onClick={handleResetFilters}
-          className='text-gray-500 hover:text-gray-700'
         >
           {t('重置')}
         </Button>

@@ -19,17 +19,27 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React from 'react';
 import {
-  Card,
   Tag,
   Tooltip,
-  Checkbox,
   Empty,
   Pagination,
   Button,
   Avatar,
 } from '@douyinfe/semi-ui';
 import { IconHelpCircle } from '@douyinfe/semi-icons';
-import { Copy } from 'lucide-react';
+import {
+  Copy,
+  ExternalLink,
+  TrendingDown,
+  TrendingUp,
+  Zap,
+  MessageSquare,
+  Image,
+  Music,
+  Video,
+  Code,
+  Globe,
+} from 'lucide-react';
 import {
   IllustrationNoResult,
   IllustrationNoResultDark,
@@ -37,20 +47,30 @@ import {
 import {
   stringToColor,
   calculateModelPrice,
-  formatPriceInfo,
   getLobeHubIcon,
 } from '../../../../../helpers';
 import PricingCardSkeleton from './PricingCardSkeleton';
 import { useMinimumLoadingTime } from '../../../../../hooks/common/useMinimumLoadingTime';
-import { renderLimitedItems } from '../../../../common/ui/RenderUtils';
 import { useIsMobile } from '../../../../../hooks/common/useIsMobile';
 
-const CARD_STYLES = {
+/* 图标容器样式常量 */
+const ICON_STYLES = {
   container:
-    'w-12 h-12 rounded-2xl flex items-center justify-center relative shadow-md',
+    'w-12 h-12 rounded-2xl flex items-center justify-center relative shadow-md flex-shrink-0',
   icon: 'w-8 h-8 flex items-center justify-center',
-  selected: 'border-blue-500 bg-blue-50',
-  default: 'border-gray-200 hover:border-gray-300',
+};
+
+/* 端点类型 → 图标和中文标签的映射 */
+const ENDPOINT_META = {
+  chat: { icon: MessageSquare, label: '对话' },
+  completions: { icon: Code, label: '补全' },
+  embeddings: { icon: Globe, label: '向量' },
+  images: { icon: Image, label: '图像' },
+  audio: { icon: Music, label: '语音' },
+  video: { icon: Video, label: '视频' },
+  moderation: { icon: Zap, label: '审核' },
+  rerank: { icon: Zap, label: '重排序' },
+  realtime: { icon: Zap, label: '实时' },
 };
 
 const PricingCardView = ({
@@ -79,56 +99,42 @@ const PricingCardView = ({
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedModels = filteredModels.slice(
     startIndex,
-    startIndex + pageSize,
+    startIndex + pageSize
   );
   const getModelKey = (model) => model.key ?? model.model_name ?? model.id;
   const isMobile = useIsMobile();
 
-  const handleCheckboxChange = (model, checked) => {
-    if (!setSelectedRowKeys) return;
-    const modelKey = getModelKey(model);
-    const newKeys = checked
-      ? Array.from(new Set([...selectedRowKeys, modelKey]))
-      : selectedRowKeys.filter((key) => key !== modelKey);
-    setSelectedRowKeys(newKeys);
-    rowSelection?.onChange?.(newKeys, null);
-  };
-
-  // 获取模型图标
+  /* ---- 获取模型图标 ---- */
   const getModelIcon = (model) => {
     if (!model || !model.model_name) {
       return (
-        <div className={CARD_STYLES.container}>
+        <div className={ICON_STYLES.container}>
           <Avatar size='large'>?</Avatar>
         </div>
       );
     }
-    // 1) 优先使用模型自定义图标
     if (model.icon) {
       return (
-        <div className={CARD_STYLES.container}>
-          <div className={CARD_STYLES.icon}>
+        <div className={ICON_STYLES.container}>
+          <div className={ICON_STYLES.icon}>
             {getLobeHubIcon(model.icon, 32)}
           </div>
         </div>
       );
     }
-    // 2) 退化为供应商图标
     if (model.vendor_icon) {
       return (
-        <div className={CARD_STYLES.container}>
-          <div className={CARD_STYLES.icon}>
+        <div className={ICON_STYLES.container}>
+          <div className={ICON_STYLES.icon}>
             {getLobeHubIcon(model.vendor_icon, 32)}
           </div>
         </div>
       );
     }
-
-    // 如果没有供应商图标，使用模型名称生成头像
-
+    /* 回退：用模型名前两个字符生成头像 */
     const avatarText = model.model_name.slice(0, 2).toUpperCase();
     return (
-      <div className={CARD_STYLES.container}>
+      <div className={ICON_STYLES.container}>
         <Avatar
           size='large'
           style={{
@@ -145,70 +151,77 @@ const PricingCardView = ({
     );
   };
 
-  // 获取模型描述
-  const getModelDescription = (record) => {
-    return record.description || '';
-  };
-
-  // 渲染标签
-  const renderTags = (record) => {
-    // 计费类型标签（左边）
-    let billingTag = (
-      <Tag key='billing' shape='circle' color='white' size='small'>
-        -
-      </Tag>
-    );
-    if (record.quota_type === 1) {
-      billingTag = (
-        <Tag key='billing' shape='circle' color='teal' size='small'>
-          {t('按次计费')}
-        </Tag>
-      );
-    } else if (record.quota_type === 0) {
-      billingTag = (
-        <Tag key='billing' shape='circle' color='violet' size='small'>
-          {t('按量计费')}
-        </Tag>
-      );
-    }
-
-    // 自定义标签（右边）
-    const customTags = [];
+  /* ---- 标签徽章：HOT / NEW / 自定义 ---- */
+  const renderBadges = (record) => {
+    const badges = [];
     if (record.tags) {
-      const tagArr = record.tags.split(',').filter(Boolean);
+      const tagArr = record.tags
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       tagArr.forEach((tg, idx) => {
-        customTags.push(
-          <Tag
-            key={`custom-${idx}`}
-            shape='circle'
-            color={stringToColor(tg)}
-            size='small'
-          >
-            {tg}
-          </Tag>,
-        );
+        const upper = tg.toUpperCase();
+        if (upper === 'HOT') {
+          badges.push(
+            <span
+              key={`badge-${idx}`}
+              className='inline-flex items-center px-2 py-0.5 rounded text-xs font-bold text-white'
+              style={{ backgroundColor: '#e65100' }}
+            >
+              HOT
+            </span>
+          );
+        } else if (upper === 'NEW') {
+          badges.push(
+            <span
+              key={`badge-${idx}`}
+              className='inline-flex items-center px-2 py-0.5 rounded text-xs font-bold text-white'
+              style={{ backgroundColor: '#2e7d32' }}
+            >
+              NEW
+            </span>
+          );
+        } else {
+          badges.push(
+            <Tag
+              key={`badge-${idx}`}
+              shape='circle'
+              color={stringToColor(tg)}
+              size='small'
+            >
+              {tg}
+            </Tag>
+          );
+        }
       });
     }
+    return badges;
+  };
 
+  /* ---- 能力标签（基于端点类型） ---- */
+  const renderCapabilities = (record) => {
+    const types = record.supported_endpoint_types || [];
+    if (types.length === 0) return null;
     return (
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>{billingTag}</div>
-        <div className='flex items-center gap-1'>
-          {customTags.length > 0 &&
-            renderLimitedItems({
-              items: customTags.map((tag, idx) => ({
-                key: `custom-${idx}`,
-                element: tag,
-              })),
-              renderItem: (item, idx) => item.element,
-              maxDisplay: 3,
-            })}
-        </div>
+      <div className='flex items-center gap-2 flex-wrap'>
+        {types.slice(0, 3).map((ep) => {
+          const meta = ENDPOINT_META[ep] || { icon: Zap, label: ep };
+          const IconComp = meta.icon;
+          return (
+            <span
+              key={ep}
+              className='inline-flex items-center gap-1 text-xs pricing-card-capability-tag'
+            >
+              <IconComp size={12} />
+              {t(meta.label)}
+            </span>
+          );
+        })}
       </div>
     );
   };
 
-  // 显示骨架屏
+  /* ---- 骨架屏 ---- */
   if (showSkeleton) {
     return (
       <PricingCardSkeleton
@@ -218,6 +231,7 @@ const PricingCardView = ({
     );
   }
 
+  /* ---- 空状态 ---- */
   if (!filteredModels || filteredModels.length === 0) {
     return (
       <div className='flex justify-center items-center py-20'>
@@ -234,11 +248,11 @@ const PricingCardView = ({
 
   return (
     <div className='px-2 pt-2'>
-      <div className='grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4'>
         {paginatedModels.map((model, index) => {
           const modelKey = getModelKey(model);
-          const isSelected = selectedRowKeys.includes(modelKey);
 
+          /* 计算价格 */
           const priceData = calculateModelPrice({
             record: model,
             selectedGroup,
@@ -249,81 +263,110 @@ const PricingCardView = ({
           });
 
           return (
-            <Card
+            <div
               key={modelKey || index}
-              className={`!rounded-2xl transition-all duration-200 hover:shadow-lg border cursor-pointer ${isSelected ? CARD_STYLES.selected : CARD_STYLES.default}`}
-              bodyStyle={{ height: '100%' }}
+              className='pricing-model-card'
               onClick={() => openModelDetail && openModelDetail(model)}
             >
               <div className='flex flex-col h-full'>
-                {/* 头部：图标 + 模型名称 + 操作按钮 */}
-                <div className='flex items-start justify-between mb-3'>
-                  <div className='flex items-start space-x-3 flex-1 min-w-0'>
-                    {getModelIcon(model)}
-                    <div className='flex-1 min-w-0'>
-                      <h3 className='text-lg font-bold text-gray-900 truncate'>
+                {/* ===== 头部：Logo + 模型名 + 标签 ===== */}
+                <div className='flex items-start gap-3 mb-3'>
+                  {getModelIcon(model)}
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <h3 className='text-lg font-bold truncate pricing-card-title'>
                         {model.model_name}
                       </h3>
-                      <div className='flex items-center gap-3 text-xs mt-1'>
-                        {formatPriceInfo(priceData, t)}
-                      </div>
+                      {renderBadges(model)}
+                    </div>
+                    {/* 模型 ID，可复制 */}
+                    <div className='flex items-center gap-1.5 mt-1'>
+                      <span className='text-xs pricing-card-model-id truncate'>
+                        {model.model_name}
+                      </span>
+                      <button
+                        className='pricing-card-copy-btn'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyText(model.model_name);
+                        }}
+                        title={t('复制模型名称')}
+                      >
+                        <Copy size={11} />
+                      </button>
                     </div>
                   </div>
-
-                  <div className='flex items-center space-x-2 ml-3'>
-                    {/* 复制按钮 */}
-                    <Button
-                      size='small'
-                      theme='outline'
-                      type='tertiary'
-                      icon={<Copy size={12} />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyText(model.model_name);
-                      }}
-                    />
-
-                    {/* 选择框 */}
-                    {rowSelection && (
-                      <Checkbox
-                        checked={isSelected}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleCheckboxChange(model, e.target.checked);
-                        }}
-                      />
-                    )}
-                  </div>
                 </div>
 
-                {/* 模型描述 - 占据剩余空间 */}
-                <div className='flex-1 mb-4'>
-                  <p
-                    className='text-xs line-clamp-2 leading-relaxed'
-                    style={{ color: 'var(--semi-color-text-2)' }}
-                  >
-                    {getModelDescription(model)}
+                {/* ===== 模型描述 ===== */}
+                {model.description && (
+                  <p className='text-sm leading-relaxed line-clamp-2 mb-4 pricing-card-desc'>
+                    {model.description}
                   </p>
-                </div>
+                )}
 
-                {/* 底部区域 */}
+                {/* ===== 能力标签 ===== */}
+                <div className='mb-4'>{renderCapabilities(model)}</div>
+
+                {/* ===== 价格区域 ===== */}
                 <div className='mt-auto'>
-                  {/* 标签区域 */}
-                  {renderTags(model)}
+                  {priceData.isPerToken ? (
+                    <div className='pricing-card-price-row'>
+                      <div className='pricing-card-price-block'>
+                        <div className='pricing-card-price-label'>
+                          {t('输入')}
+                        </div>
+                        <div className='pricing-card-price-value'>
+                          <TrendingDown
+                            size={14}
+                            className='pricing-card-price-icon-input'
+                          />
+                          {priceData.inputPrice}/{priceData.unitLabel}
+                        </div>
+                      </div>
+                      <div className='pricing-card-price-block'>
+                        <div className='pricing-card-price-label'>
+                          {t('输出')}
+                        </div>
+                        <div className='pricing-card-price-value'>
+                          <TrendingUp
+                            size={14}
+                            className='pricing-card-price-icon-output'
+                          />
+                          {priceData.completionPrice}/{priceData.unitLabel}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='pricing-card-price-row'>
+                      <div
+                        className='pricing-card-price-block'
+                        style={{ flex: 1 }}
+                      >
+                        <div className='pricing-card-price-label'>
+                          {t('模型价格')}
+                        </div>
+                        <div className='pricing-card-price-value'>
+                          {priceData.price} / {t('次')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 倍率信息（可选） */}
                   {showRatio && (
-                    <div className='pt-3'>
+                    <div className='pt-3 mb-4 pricing-card-ratio-section'>
                       <div className='flex items-center space-x-1 mb-2'>
-                        <span className='text-xs font-medium text-gray-700'>
+                        <span className='text-xs font-medium pricing-card-ratio-label'>
                           {t('倍率信息')}
                         </span>
                         <Tooltip
                           content={t('倍率是为了方便换算不同价格的模型')}
                         >
                           <IconHelpCircle
-                            className='text-blue-500 cursor-pointer'
+                            className='cursor-pointer'
                             size='small'
+                            style={{ color: 'var(--semi-color-primary)' }}
                             onClick={(e) => {
                               e.stopPropagation();
                               setModalImageUrl('/ratio.png');
@@ -332,7 +375,7 @@ const PricingCardView = ({
                           />
                         </Tooltip>
                       </div>
-                      <div className='grid grid-cols-3 gap-2 text-xs text-gray-600'>
+                      <div className='grid grid-cols-3 gap-2 text-xs pricing-card-ratio-values'>
                         <div>
                           {t('模型')}:{' '}
                           {model.quota_type === 0 ? model.model_ratio : t('无')}
@@ -349,9 +392,21 @@ const PricingCardView = ({
                       </div>
                     </div>
                   )}
+
+                  {/* ===== 使用模型按钮 ===== */}
+                  <button
+                    className='pricing-card-use-btn'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openModelDetail && openModelDetail(model);
+                    }}
+                  >
+                    {t('使用模型')}
+                    <ExternalLink size={14} />
+                  </button>
                 </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>

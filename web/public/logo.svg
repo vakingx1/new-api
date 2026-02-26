@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- 主渐变：天蓝 → 紫 -->
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#55B8F0"/>
+      <stop offset="60%" stop-color="#8E7DE8"/>
+      <stop offset="100%" stop-color="#A07CD6"/>
+    </linearGradient>
+    <!-- 轨道渐变 -->
+    <linearGradient id="g2" x1="0%" y1="30%" x2="100%" y2="70%">
+      <stop offset="0%" stop-color="#6CC5F5"/>
+      <stop offset="100%" stop-color="#B090E8"/>
+    </linearGradient>
+    <!-- 星星渐变 -->
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#88D4FF"/>
+      <stop offset="100%" stop-color="#C8A0F8"/>
+    </linearGradient>
+    <!-- 文字渐变 -->
+    <linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8090E8"/>
+      <stop offset="100%" stop-color="#A880D0"/>
+    </linearGradient>
+    <!-- 字母B渐变：偏蓝 -->
+    <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#50ADE8"/>
+      <stop offset="100%" stop-color="#7C88E0"/>
+    </linearGradient>
+    <!-- 字母A渐变：偏紫 -->
+    <linearGradient id="gA" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8878D8"/>
+      <stop offset="100%" stop-color="#A070C8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ====== 外层椭圆轨道 ====== -->
+  <ellipse cx="252" cy="200" rx="158" ry="125"
+    fill="none" stroke="url(#g2)" stroke-width="7"
+    transform="rotate(-22, 252, 200)" opacity="0.75"/>
+
+  <!-- ====== 内层圆环 ====== -->
+  <circle cx="240" cy="190" r="95"
+    fill="none" stroke="url(#g1)" stroke-width="6" opacity="0.55"/>
+
+  <!-- ====== 字母 B（衬线风格） ====== -->
+  <g>
+    <!-- B 主体 -->
+    <path d="
+      M195,150 L195,250
+      L195,150 L228,150
+      C252,150 265,160 265,175
+      C265,187 256,194 244,196
+      C260,198 270,207 270,222
+      C270,238 255,250 230,250
+      L195,250
+    " fill="none" stroke="url(#gB)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- B 上弧内线 -->
+    <path d="M210,158 L226,158 C244,158 254,164 254,175 C254,186 244,192 226,192 L210,192"
+      fill="none" stroke="url(#gB)" stroke-width="3" opacity="0.4"/>
+    <!-- B 下弧内线 -->
+    <path d="M210,200 L228,200 C248,200 260,207 260,220 C260,233 248,240 228,240 L210,240"
+      fill="none" stroke="url(#gB)" stroke-width="3" opacity="0.4"/>
+  </g>
+
+  <!-- ====== 字母 A（衬线风格） ====== -->
+  <g>
+    <path d="M270,250 L300,155 L330,250"
+      fill="none" stroke="url(#gA)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- A 横杠 -->
+    <line x1="278" y1="222" x2="322" y2="222"
+      stroke="url(#gA)" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- ====== 轨道前景段（从右下绕到前方） ====== -->
+  <path d="M345,265 C385,240 395,190 370,150"
+    fill="none" stroke="url(#g2)" stroke-width="7"
+    stroke-linecap="round" opacity="0.8"/>
+
+  <!-- ====== ✦ 大四角星（右上） ====== -->
+  <g transform="translate(328, 108)">
+    <path d="M0,-20 C3,-5 5,-3 20,0 C5,3 3,5 0,20 C-3,5 -5,3 -20,0 C-5,-3 -3,-5 0,-20 Z"
+      fill="url(#g3)"/>
+  </g>
+
+  <!-- ====== ✦ 小四角星（左上） ====== -->
+  <g transform="translate(208, 112)">
+    <path d="M0,-10 C1.5,-3 3,-1.5 10,0 C3,1.5 1.5,3 0,10 C-1.5,3 -3,1.5 -10,0 C-3,-1.5 -1.5,-3 0,-10 Z"
+      fill="url(#g3)" opacity="0.85"/>
+  </g>
+
+  <!-- ====== ✦ 微小星星（右中） ====== -->
+  <g transform="translate(355, 158)">
+    <path d="M0,-7 C1,-2 2,-1 7,0 C2,1 1,2 0,7 C-1,2 -2,1 -7,0 C-2,-1 -1,-2 0,-7 Z"
+      fill="url(#g3)" opacity="0.65"/>
+  </g>
+
+  <!-- ====== 文字 BestApi ====== -->
+  <text x="256" y="388" text-anchor="middle"
+    font-family="'Georgia', 'Times New Roman', serif"
+    font-size="74" font-weight="700" font-style="italic"
+    letter-spacing="2"
+    fill="url(#g4)">
+    BestApi
+  </text>
+</svg>

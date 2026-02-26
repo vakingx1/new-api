@@ -73,7 +73,7 @@ const PricingVendors = ({
       }
       return models.filter((model) => model.vendor_name === vendor).length;
     },
-    [models],
+    [models]
   );
 
   // 生成供应商选项
@@ -121,6 +121,7 @@ const PricingVendors = ({
       activeValue={filterVendor}
       onChange={setFilterVendor}
       loading={loading}
+      collapseHeight={140}
       t={t}
     />
   );
