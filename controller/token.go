@@ -9,6 +9,7 @@ import (
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/i18n"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/gin-gonic/gin"
@@ -174,6 +175,22 @@ func AddToken(c *gin.Context) {
 		})
 		return
 	}
+	// 校验令牌分组：非管理员只能创建自己可用分组的令牌
+	if token.Group != "" {
+		userId := c.GetInt("id")
+		userRole := c.GetInt("role")
+		if userRole < common.RoleAdminUser {
+			userGroup, _ := model.GetUserGroup(userId, false)
+			usableGroups := service.GetUserUsableGroups(userGroup)
+			if _, ok := usableGroups[token.Group]; !ok {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": fmt.Sprintf("无权创建分组 %s 的令牌", token.Group),
+				})
+				return
+			}
+		}
+	}
 	key, err := common.GenerateKey()
 	if err != nil {
 		common.ApiErrorI18n(c, i18n.MsgTokenGenerateFailed)
@@ -264,6 +281,21 @@ func UpdateToken(c *gin.Context) {
 	if statusOnly != "" {
 		cleanToken.Status = token.Status
 	} else {
+		// 校验令牌分组：非管理员只能使用自己可用分组的令牌
+		if token.Group != "" {
+			userRole := c.GetInt("role")
+			if userRole < common.RoleAdminUser {
+				userGroup, _ := model.GetUserGroup(userId, false)
+				usableGroups := service.GetUserUsableGroups(userGroup)
+				if _, ok := usableGroups[token.Group]; !ok {
+					c.JSON(http.StatusOK, gin.H{
+						"success": false,
+						"message": fmt.Sprintf("无权使用分组 %s", token.Group),
+					})
+					return
+				}
+			}
+		}
 		// If you add more fields, please also update token.Update()
 		cleanToken.Name = token.Name
 		cleanToken.ExpiredTime = token.ExpiredTime

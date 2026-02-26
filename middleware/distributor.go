@@ -74,6 +74,20 @@ func Distribute() func(c *gin.Context) {
 				}
 			}
 
+			// 检查用户模型黑名单
+			if modelRequest.Model != "" {
+				bannedModels, _ := common.GetContextKey(c, constant.ContextKeyUserBannedModels)
+				if bannedStr, ok := bannedModels.(string); ok && bannedStr != "" {
+					for _, banned := range strings.Split(bannedStr, ",") {
+						banned = strings.TrimSpace(banned)
+						if banned != "" && banned == modelRequest.Model {
+							abortWithOpenAiMessage(c, http.StatusForbidden, fmt.Sprintf("存在滥用嫌疑，您已被禁止使用模型 %s，如有疑问请联系管理员", modelRequest.Model))
+							return
+						}
+					}
+				}
+			}
+
 			if shouldSelectChannel {
 				if modelRequest.Model == "" {
 					abortWithOpenAiMessage(c, http.StatusBadRequest, i18n.T(c, i18n.MsgDistributorModelNameRequired))

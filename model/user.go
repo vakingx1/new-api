@@ -50,17 +50,48 @@ type User struct {
 	Setting          string         `json:"setting" gorm:"type:text;column:setting"`
 	Remark           string         `json:"remark,omitempty" gorm:"type:varchar(255)" validate:"max=255"`
 	StripeCustomer   string         `json:"stripe_customer" gorm:"type:varchar(64);column:stripe_customer;index"`
+	BannedModels     string         `json:"banned_models" gorm:"type:text;column:banned_models;default:''"`
+}
+
+// GetBannedModelsList 获取被禁用的模型列表
+func (user *User) GetBannedModelsList() []string {
+	if user.BannedModels == "" {
+		return []string{}
+	}
+	models := strings.Split(user.BannedModels, ",")
+	result := make([]string, 0, len(models))
+	for _, m := range models {
+		m = strings.TrimSpace(m)
+		if m != "" {
+			result = append(result, m)
+		}
+	}
+	return result
+}
+
+// IsModelBanned 检查指定模型是否被禁用
+func (user *User) IsModelBanned(modelName string) bool {
+	if user.BannedModels == "" {
+		return false
+	}
+	for _, m := range user.GetBannedModelsList() {
+		if m == modelName {
+			return true
+		}
+	}
+	return false
 }
 
 func (user *User) ToBaseUser() *UserBase {
 	cache := &UserBase{
-		Id:       user.Id,
-		Group:    user.Group,
-		Quota:    user.Quota,
-		Status:   user.Status,
-		Username: user.Username,
-		Setting:  user.Setting,
-		Email:    user.Email,
+		Id:           user.Id,
+		Group:        user.Group,
+		Quota:        user.Quota,
+		Status:       user.Status,
+		Username:     user.Username,
+		Setting:      user.Setting,
+		Email:        user.Email,
+		BannedModels: user.BannedModels,
 	}
 	return cache
 }
@@ -520,11 +551,12 @@ func (user *User) Edit(updatePassword bool) error {
 
 	newUser := *user
 	updates := map[string]interface{}{
-		"username":     newUser.Username,
-		"display_name": newUser.DisplayName,
-		"group":        newUser.Group,
-		"quota":        newUser.Quota,
-		"remark":       newUser.Remark,
+		"username":      newUser.Username,
+		"display_name":  newUser.DisplayName,
+		"group":         newUser.Group,
+		"quota":         newUser.Quota,
+		"remark":        newUser.Remark,
+		"banned_models": newUser.BannedModels,
 	}
 	if updatePassword {
 		updates["password"] = newUser.Password
@@ -535,8 +567,14 @@ func (user *User) Edit(updatePassword bool) error {
 		return err
 	}
 
+	// 重新从数据库读取完整用户数据，确保缓存与数据库一致
+	var freshUser User
+	if err = DB.First(&freshUser, user.Id).Error; err != nil {
+		return err
+	}
+
 	// Update cache
-	return updateUserCache(*user)
+	return updateUserCache(freshUser)
 }
 
 func (user *User) ClearBinding(bindingType string) error {

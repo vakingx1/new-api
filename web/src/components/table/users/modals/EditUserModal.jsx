@@ -68,6 +68,7 @@ const EditUserModal = (props) => {
   const [addAmountLocal, setAddAmountLocal] = useState('');
   const isMobile = useIsMobile();
   const [groupOptions, setGroupOptions] = useState([]);
+  const [modelOptions, setModelOptions] = useState([]);
   const [bindingModalVisible, setBindingModalVisible] = useState(false);
   const formApiRef = useRef(null);
 
@@ -87,12 +88,25 @@ const EditUserModal = (props) => {
     quota: 0,
     group: 'default',
     remark: '',
+    banned_models: [],
   });
 
   const fetchGroups = async () => {
     try {
       let res = await API.get(`/api/group/`);
       setGroupOptions(res.data.data.map((g) => ({ label: g, value: g })));
+    } catch (e) {
+      showError(e.message);
+    }
+  };
+
+  // 加载被编辑用户可用的所有模型列表
+  const fetchModels = async () => {
+    try {
+      const res = await API.get(`/api/user/${userId}/models`);
+      if (res.data.success) {
+        setModelOptions(res.data.data.map((m) => ({ label: m, value: m })));
+      }
     } catch (e) {
       showError(e.message);
     }
@@ -107,6 +121,15 @@ const EditUserModal = (props) => {
     const { success, message, data } = res.data;
     if (success) {
       data.password = '';
+      // 将逗号分隔的禁用模型字符串转为数组，供 Select 多选使用
+      if (data.banned_models && typeof data.banned_models === 'string') {
+        data.banned_models = data.banned_models
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else {
+        data.banned_models = [];
+      }
       formApiRef.current?.setValues({ ...getInitValues(), ...data });
     } else {
       showError(message);
@@ -116,7 +139,10 @@ const EditUserModal = (props) => {
 
   useEffect(() => {
     loadUser();
-    if (userId) fetchGroups();
+    if (userId) {
+      fetchGroups();
+      fetchModels();
+    }
     setBindingModalVisible(false);
   }, [props.editingUser.id]);
 
@@ -134,6 +160,10 @@ const EditUserModal = (props) => {
     let payload = { ...values };
     if (typeof payload.quota === 'string')
       payload.quota = parseInt(payload.quota) || 0;
+    // 将禁用模型数组转为逗号分隔字符串
+    if (Array.isArray(payload.banned_models)) {
+      payload.banned_models = payload.banned_models.join(',');
+    }
     if (userId) {
       payload.id = parseInt(userId);
     }
@@ -266,6 +296,23 @@ const EditUserModal = (props) => {
                         showClear
                       />
                     </Col>
+
+                    {userId && (
+                      <Col span={24}>
+                        <Form.Select
+                          field='banned_models'
+                          label={t('禁用模型')}
+                          placeholder={t('选择要禁用的模型')}
+                          multiple
+                          filter
+                          optionList={modelOptions}
+                          maxTagCount={5}
+                          showClear
+                          allowCreate
+                          style={{ width: '100%' }}
+                        />
+                      </Col>
+                    )}
                   </Row>
                 </Card>
 
@@ -398,7 +445,9 @@ const EditUserModal = (props) => {
             const current = formApiRef.current?.getValue('quota') || 0;
             return (
               <Text type='secondary' className='block mb-2'>
-                {`${t('新额度：')}${renderQuota(current)} + ${renderQuota(addQuotaLocal)} = ${renderQuota(current + parseInt(addQuotaLocal || 0))}`}
+                {`${t('新额度：')}${renderQuota(current)} + ${renderQuota(
+                  addQuotaLocal
+                )} = ${renderQuota(current + parseInt(addQuotaLocal || 0))}`}
               </Text>
             );
           })()}
@@ -422,7 +471,7 @@ const EditUserModal = (props) => {
                 setAddQuotaLocal(
                   val != null && val !== ''
                     ? displayAmountToQuota(Math.abs(val)) * Math.sign(val)
-                    : '',
+                    : ''
                 );
               }}
               style={{ width: '100%' }}
@@ -444,9 +493,9 @@ const EditUserModal = (props) => {
                   ? Number(
                       (
                         quotaToDisplayAmount(Math.abs(val)) * Math.sign(val)
-                      ).toFixed(2),
+                      ).toFixed(2)
                     )
-                  : '',
+                  : ''
               );
             }}
             style={{ width: '100%' }}

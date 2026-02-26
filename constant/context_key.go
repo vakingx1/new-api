@@ -50,7 +50,8 @@ const (
 	ContextKeyUserEmail   ContextKey = "user_email"
 	ContextKeyUserGroup   ContextKey = "user_group"
 	ContextKeyUsingGroup  ContextKey = "group"
-	ContextKeyUserName    ContextKey = "username"
+	ContextKeyUserName         ContextKey = "username"
+	ContextKeyUserBannedModels ContextKey = "user_banned_models"
 
 	ContextKeyLocalCountTokens ContextKey = "local_count_tokens"
 
